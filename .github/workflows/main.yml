@@ -33,7 +33,7 @@ jobs:
         python3 ~/.bin/repo init --depth=1 -u https://github.com/LineageOS/android.git -b cm-14.1
         git clone https://github.com/J110H-Android/android_device_samsung_j1pop3g-2.git -b cm-14.1 ~/TWRP/device/samsung/j1pop3g
         git clone https://github.com/J110H-Android/android_vendor_samsung_j1pop3g -b cm-14.1 ~/TWRP/vendor/samsung/j1pop3g
-        git clone https://github.com/J110H-Android/android_kernel_samsung_j1pop3g-2 -b cm-14.1 ~/TWRP/vendor/samsung/j1pop3g
+        git clone https://github.com/J110H-Android/android_kernel_samsung_j1pop3g-2 -b cm-14.1 ~/TWRP/kernel/samsung/j1pop3g
         git clone --depth 1 --branch android-7.1.2_r37 --single-branch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8 /opt/toolchains/arm-eabi-4.8/
         python3 ~/.bin/repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
     - name: Cleanups before build
