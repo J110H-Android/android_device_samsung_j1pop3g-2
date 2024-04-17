@@ -16,18 +16,18 @@
 -include device/samsung/scx30g-common/BoardConfigCommon.mk
 
 # Inherit from the proprietary version
--include vendor/samsung/core33g/BoardConfigVendor.mk
+-include vendor/samsung/j1pop3g/BoardConfigVendor.mk
 
 # Bootloader
-TARGET_BOOTLOADER_BOARD_NAME := sc7730s
+TARGET_BOOTLOADER_BOARD_NAME := SC7727S
 
 # Partitions
+# fix this up by examining /proc/mtd on a running device
 BOARD_BOOTIMAGE_PARTITION_SIZE := 16777216
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1258291200
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 6094323712
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1080033280
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 2428502016
 BOARD_CACHEIMAGE_PARTITION_SIZE := 209715200
-BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_FLASH_BLOCK_SIZE := 131072
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_HAS_LARGE_FILESYSTEM := true
@@ -35,32 +35,40 @@ BOARD_HAS_LARGE_FILESYSTEM := true
 # Camera HAL1 hack
 TARGET_HAS_LEGACY_CAMERA_HAL1 := true
 
+SPRD_MODULES:
+	mkdir -p $(PRODUCT_OUT)/system/lib/modules
+	ln -sf $(KERNEL_OUT)/drivers/autotst/autotst.ko $(PRODUCT_OUT)/system/lib/modules/autotst.ko
+	ln -sf $(KERNEL_OUT)/drivers/gpu/mali400/r4p1/mali.ko $(PRODUCT_OUT)/system/lib/modules/mali.ko
+	ln -sf $(KERNEL_OUT)/drivers/mmc/card/mmc_test.ko $(PRODUCT_OUT)/system/lib/modules/mmc_test.ko
+	ln -sf $(KERNEL_OUT)/drivers/net/wireless/sc2331/sprdwl.ko $(PRODUCT_OUT)/system/lib/modules/sprdwl.ko
+
+TARGET_KERNEL_MODULES := SPRD_MODULES
+
 # WiFi
-BOARD_WLAN_DEVICE := bcmdhd
-BOARD_WLAN_DEVICE_REV := bcm4343
-WPA_SUPPLICANT_VERSION := VER_0_8_X
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
-BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_$(BOARD_WLAN_DEVICE)
-BOARD_HOSTAPD_DRIVER := NL80211
-BOARD_HOSTAPD_PRIVATE_LIB := lib_driver_cmd_$(BOARD_WLAN_DEVICE)
-WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/dhd/parameters/firmware_path"
-WIFI_DRIVER_FW_PATH_STA := "/system/etc/wifi/bcmdhd_sta.bin"
-WIFI_DRIVER_FW_PATH_AP := "/system/etc/wifi/bcmdhd_apsta.bin"
-WIFI_DRIVER_NVRAM_PATH_PARAM := "/sys/module/dhd/parameters/nvram_path"
-WIFI_DRIVER_NVRAM_PATH := "/system/etc/wifi/nvram_net.txt"
-WIFI_BAND := 802_11_ABG
-BOARD_HAVE_SAMSUNG_WIFI := true
+WPA_SUPPLICANT_VERSION      := VER_2_1_DEVEL
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_sprdwl
+BOARD_HOSTAPD_DRIVER        := NL80211
+BOARD_HOSTAPD_PRIVATE_LIB   := lib_driver_cmd_sprdwl
+BOARD_WLAN_DEVICE           := sc2331
+WIFI_DRIVER_FW_PATH_PARAM   := "/data/misc/wifi/fwpath"
+WIFI_DRIVER_FW_PATH_STA     := "sta_mode"
+WIFI_DRIVER_FW_PATH_P2P     := "p2p_mode"
+WIFI_DRIVER_FW_PATH_AP      := "ap_mode"
+WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/sprdwl.ko"
+WIFI_DRIVER_MODULE_NAME     := "sprdwl"
+BOARD_HAVE_SAMSUNG_WIFI 	:= true
 
 # Kernel
-TARGET_KERNEL_CONFIG := cyanogen_core33g_defconfig
-TARGET_KERNEL_SOURCE := kernel/samsung/core33g
+TARGET_KERNEL_CONFIG := cyanogenmod_j1pop3g_defconfig
+TARGET_KERNEL_SOURCE := kernel/samsung/j1pop3g
 
 # Resolution
 TARGET_SCREEN_HEIGHT := 800
 TARGET_SCREEN_WIDTH := 480
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := SM-G360H,SM-G360HU,core33g,core33gdd,core33gdx
+TARGET_OTA_ASSERT_DEVICE := j1pop3g,j110h,sc7727s,j1ace3g
 
 # Gralloc
 TARGET_UPDATED_MALI := true

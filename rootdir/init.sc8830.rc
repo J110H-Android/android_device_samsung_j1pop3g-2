@@ -1,6 +1,6 @@
 import /init.board.rc
 import /init.sc8830.usb.rc
-import /init.core33g_base.rc
+import /init.j1pop3g_base.rc
 import /init.wifi.rc
 
 on early-init
@@ -21,7 +21,6 @@ on init
     mkdir /productinfo 0771 system system
 
     # See storage config details at https://source.android.com/devices/storage/
-
     # Support legacy paths
     symlink /sdcard /mnt/sdcard
     symlink /sdcard /storage/sdcard0
@@ -33,8 +32,8 @@ on init
 on fs
     mount_all /fstab.sc8830
     mount pstore pstore /sys/fs/pstore
-    symlink /system/res /res
-    symlink /system/bin /bin
+	symlink /system/res /res
+	symlink /system/bin /bin
 
 #Allow others to read fb devices
     chmod 660 /dev/graphics/fb0
@@ -105,18 +104,22 @@ on early-boot
 
     chown system root /sys/class/rtcc/rtcc_trigger
 
+    chown system root /proc/mdbg
+    chown system root /proc/mdbg/assert
+    chown system root /proc/mdbg/wdtirq
+    chown system root /proc/mdbg/loopcheck
+    chown radio root /proc/mdbg/at_cmd
+    chmod 765 /proc/mdbg
+    chmod 764 /proc/mdbg/assert
+    chmod 764 /proc/mdbg/wdtirq
+    chmod 764 /proc/mdbg/loopcheck
+    chmod 764 /proc/mdbg/at_cmd
+
 on boot
-
-# Turn on all CPUs
-    write /sys/devices/system/cpu/cpu1/online 1
-    write /sys/devices/system/cpu/cpu2/online 1
-    write /sys/devices/system/cpu/cpu3/online 1
-
     chown system system /sys/module/mali/parameters/gpu_cur_freq
     chown system system /sys/module/mali/parameters/gpufreq_max_limit
     chown system system /sys/module/mali/parameters/gpufreq_min_limit
     chown system system /sys/module/mali/parameters/gpufreq_table
-    chown system system /sys/kernel/debug/mali0/memory_usage
     chown system system /sys/class/backlight/sprd_backlight/brightness
 
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
@@ -132,6 +135,8 @@ on boot
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
     chown system system /sys/devices/system/cpu/cpufreq/sprdemand/cpu_hotplug_disable
     chown media system /sys/devices/system/cpu/cpufreq/sprdemand/cpu_hotplug_disable
+    chown system system /sys/class/graphics/fb0/blank
+
     chmod 0660 /sys/devices/system/cpu/cpufreq/sprdemand/cpu_hotplug_disable
     chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
     chmod 0660 /sys/devices/system/cpu/cpufreq/sprdemand/cpu_hotplug_disable
@@ -141,16 +146,19 @@ on boot
     chown system system /sys/devices/system/cpu/cpuhotplug/cpu_hotplug_disable
     chown media system /sys/devices/system/cpu/cpuhotplug/cpu_hotplug_disable
     chmod 0660 /sys/devices/system/cpu/cpuhotplug/cpu_hotplug_disable
+    chmod 0660 /sys/class/graphics/fb0/blank
 
     chown system system /sys/class/graphics/fb0/dynamic_mipi_clk
 
+# usb detect
+    mkdir /dev/bus 0755 root root
+    mkdir /dev/bus/usb 0755 root root
+
+# OTG Test
+    chown system radio /sys/class/host_notify/usb_otg/booster
+    chmod 0664 /sys/class/host_notify/usb_otg/booster
+
 on charger
-
-    exec sfsck /dev/block/mmcblk0p23 ext4
-    mount ext4 /dev/block/mmcblk0p23 /system ro,barrier=1 wait
-    exec sfsck /dev/block/mmcblk0p25 ext4
-    mount ext4 /dev/block/mmcblk0p25 /data noatime,nosuid,nodev,nomblk_io_submit wait,encryptable=footer,check
-
     class_start core
     start console
     start slog
@@ -161,6 +169,18 @@ on alarm
     start media
     start console
     start slog
+
+on property:ro.board_ram_size=min
+    setprop zram.disksize 64
+
+on property:ro.board_ram_size=low
+    setprop zram.disksize 200
+    write /proc/sys/vm/extra_free_kbytes 1024
+    write /sys/module/zram/parameters/total_mem_usage_percent  35
+
+on property:ro.board_ram_size=mid
+    setprop zram.disksize 250
+    write /proc/sys/vm/extra_free_kbytes 2048
 
 on property:ro.config.zram.support=true
     setprop sys.vm.swappiness 100
@@ -191,9 +211,7 @@ on property:ro.modem.w.count=3
     write /proc/sim/1 w
     write /proc/sim/2 w
 
-on property:ro.config.ksm.support=true
-    write /sys/kernel/mm/ksm/pages_to_scan 100
-    write /sys/kernel/mm/ksm/sleep_millisecs 500
+on property:sys.boot_completed=1
     write /sys/kernel/mm/ksm/run   1
 
 service charge /bin/charge
@@ -224,4 +242,3 @@ on property:persist.modem.l.enable=1
     chmod 0666 /proc/pin_switch/bt_iis_sys_sel/cp1_iis0
     chmod 0666 /proc/pin_switch/bt_iis_sys_sel/cp2_iis0
     chmod 0666 /proc/pin_switch/bt_iis_sys_sel/ap_iis0
-
